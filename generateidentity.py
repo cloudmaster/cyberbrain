@@ -2,18 +2,34 @@
 
 import sys
 #sys.path.append("/opt/barnum-vcard")
-sys.path.append("/repos/Gitorious/github-barnum-custom")
+sys.path.append("/repos/Gitorious/Github/barnum-custom")
 import gen_data
 import time
 import os
 #import pipes # pipes.quote won't work?
 
-def shellquote(s):
-        return s.replace("\"", "\\\"")
+has_say = not os.system("which say >/dev/null")
+has_festival = not os.system("which festival >/dev/null")
+if not has_say and not has_festival:
+	print "(Warning: Disabling text-to-speech system.)"
+
+def shellquote(s, singlequotes):
+	if singlequotes:
+		s = s.replace("\'", "'\\\''")
+	return s.replace("\"", "\\\"")
 
 def output(s):
-        #print s
-        os.system("say \"%s\"" % shellquote(s))
+	if has_say:
+		qs = "say \"%s\"" % shellquote(s, False)
+		print s
+		os.system(qs)
+	elif has_festival:
+		voice = "us1_mbrola"
+		qs = "echo '(voice_%s)(SayText \"%s\")' | festival --pipe 2>/dev/null" % (voice, shellquote(s, True))
+		print s
+		os.system(qs)
+	else:
+		print s
 
 output("I have no identity yet. This is a problem. I'm a robot without an identity.")
 
